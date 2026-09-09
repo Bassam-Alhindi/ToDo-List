@@ -46,7 +46,7 @@ body {
     place-items: center;
     place-items: safe center;
 
-    font-family: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+    font-family: "Cairo", "Segoe UI", Tahoma, sans-serif;
     font-size: 16px;
     line-height: 1.7;
     letter-spacing: normal;
@@ -210,14 +210,39 @@ body::after {
 
 h1 {
     margin: 0;
-    font-family: "Reem Kufi", "IBM Plex Sans Arabic", sans-serif;
-    font-weight: 500;
-    /* الكوفي له امتدادات تحت الخطّ، فيحتاج سطرًا أفسح من المعتاد */
+    /* Cairo يرسم وصلات العربية سليمة، بخلاف الكوفي العرضيّ الذي كان يشوّه
+       التاء المربوطة والميم الأخيرة في "قائمة المهام" */
+    font-family: "Cairo", "Segoe UI", Tahoma, sans-serif;
+    font-weight: 700;
     font-size: clamp(1.4rem, 5.6vw, 2.05rem);
-    line-height: 1.35;
+    line-height: 1.4;
     letter-spacing: normal;
     color: #eef2f5;
     text-wrap: balance;
+
+    /* شريط ذهبيّ يعبر الحروف ببطء، وتوهّج يتنفّس خلفها.
+       القاعدة تبقى فاتحة فلا تُمسّ قابلية القراءة. */
+    background-image: linear-gradient(100deg,
+        #eef2f5 0%, #eef2f5 38%,
+        #f7e3ab 47%, #e5c158 51%, #f7e3ab 55%,
+        #eef2f5 64%, #eef2f5 100%);
+    background-size: 260% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: title-sheen 9s var(--silk) infinite,
+               title-breathe 5.2s ease-in-out infinite;
+}
+
+@keyframes title-sheen {
+    0%,  12% { background-position: 100% 0; }
+    62%, 100% { background-position: 0% 0; }
+}
+
+@keyframes title-breathe {
+    0%, 100% { filter: drop-shadow(0 0 0.35rem rgba(212, 175, 55, 0.16)); }
+    50%      { filter: drop-shadow(0 0 0.9rem rgba(212, 175, 55, 0.4)); }
 }
 
 .today {
@@ -367,12 +392,12 @@ h1 {
 #addBtn {
     position: relative;
     flex: 0 0 auto;
-    width: var(--touch);
-    height: var(--touch);
+    width: 2.15rem;
+    height: 2.15rem;
     display: grid;
     place-items: center;
     border: none;
-    border-radius: 0.95rem;
+    border-radius: 0.7rem;
     cursor: pointer;
     color: #14110a;
     background: linear-gradient(152deg,
@@ -398,12 +423,20 @@ h1 {
     transition: opacity 0.34s var(--silk);
 }
 
+/* مساحة لمس 44px حول الزرّ الصغير دون تكبيره بصريًّا */
+#addBtn::after {
+    content: "";
+    position: absolute;
+    inset: -0.36rem;
+    border-radius: inherit;
+}
+
 #addBtn svg {
     position: relative;
-    width: 1.15rem;
-    height: 1.15rem;
+    width: 0.95rem;
+    height: 0.95rem;
     stroke: currentColor;
-    stroke-width: 2.1;
+    stroke-width: 2.3;
     stroke-linecap: round;
     fill: none;
     /* الزائد المستدير بزاوية 90° يعود إلى ذاته، فالدوران ينحلّ تمامًا */
@@ -573,13 +606,18 @@ li.removing {
 
 /* checkbox — 24px mark, 44px tap area */
 
+/* الغلاف هو مساحة اللمس كاملةً (44px)، والمربّع المرئيّ 24px في وسطه.
+   الهوامش السالبة تُبقي تخطيط السطر كما كان رغم اتّساع المساحة. */
 .check {
     position: relative;
     flex: 0 0 auto;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: var(--touch);
+    height: var(--touch);
+    margin-inline: -0.55rem;
     display: grid;
     place-items: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .check input {
@@ -587,8 +625,8 @@ li.removing {
     -webkit-appearance: none;
     position: relative;
     margin: 0;
-    width: 100%;
-    height: 100%;
+    width: 1.5rem;
+    height: 1.5rem;
     border: 1.5px solid rgba(255, 255, 255, 0.26);
     border-radius: 0.5rem;
     background: rgba(4, 10, 16, 0.5);
@@ -606,16 +644,17 @@ li.removing {
     100% { transform: scale(1); }
 }
 
-/* توسيع مساحة اللمس دون تغيير الشكل */
-.check input::before {
-    content: "";
-    position: absolute;
-    inset: -0.625rem;
-}
-
 .check input:checked {
     background: linear-gradient(145deg, var(--gold-soft), var(--gold) 55%, var(--gold-deep));
     border-color: transparent;
+    /* توهّج ذهبيّ يتنفّس ببطء: حضور هادئ لا يخطف البصر عن النصّ */
+    animation: done-glow 3.4s var(--silk) infinite;
+}
+
+@keyframes done-glow {
+    0%,
+    100% { box-shadow: 0 0 0.5rem rgba(212, 175, 55, 0.26); }
+    50%  { box-shadow: 0 0 1.15rem 0.1rem rgba(212, 175, 55, 0.55); }
 }
 
 .check input:active { transform: scale(0.9); }
@@ -691,6 +730,16 @@ li.removing {
 li.done .task-ink {
     background-size: 100% 1.5px;
     color: var(--text-faint);
+}
+
+/* حضور ذهبيّ هادئ يتنفّس على امتداد السطر المنجَز */
+li.done {
+    animation: row-done-glow 4.6s ease-in-out infinite;
+}
+
+@keyframes row-done-glow {
+    0%, 100% { background-color: rgba(212, 175, 55, 0.022); }
+    50%      { background-color: rgba(212, 175, 55, 0.07); }
 }
 
 .due-badge {
@@ -874,7 +923,8 @@ li:focus-within .del {
 }
 
 .cal-title {
-    font-family: "Reem Kufi", "IBM Plex Sans Arabic", sans-serif;
+    font-family: "Cairo", "Segoe UI", Tahoma, sans-serif;
+    font-weight: 600;
     font-size: 0.9375rem;
     color: var(--text);
 }
@@ -1105,7 +1155,7 @@ button, input {
     /* يرفع الزرّ والقرص ليصيرا خليّتين مباشرتين في الشبكة */
     .composer-row { display: contents; }
     .date-pill { min-height: 1.85rem; }
-    #addBtn { width: 2.6rem; height: 2.6rem; }
+    #addBtn { width: 2rem; height: 2rem; }
 
     .tab { min-height: 2.2rem; font-size: 0.8125rem; }
     #taskList { max-height: min(52vh, 24rem); }
@@ -1127,4 +1177,10 @@ button, input {
     /* زرّ الحذف يبقى سياقيًّا: الكشف فوريّ بلا انتقال */
     .check.pulse,
     .check.pulse::after { animation: none; }
+    .check input:checked {
+        animation: none;
+        box-shadow: 0 0 0.5rem rgba(212, 175, 55, 0.26);
+    }
+    h1 { animation: none; }
+    li.done { animation: none; background-color: rgba(212, 175, 55, 0.04); }
 }

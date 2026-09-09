@@ -307,7 +307,9 @@ function createTaskElement(text, isDone, dueDate) {
     li.dataset.text = text;
     if (isDone) li.classList.add('done');
 
-    const check = document.createElement('span');
+    /* <label> يمرّر اللمسة إلى المربّع تمريرًا أصليًّا في كلّ المتصفّحات،
+       بخلاف توسيع المساحة بعنصر زائف الذي لا يُعوَّل عليه في iOS Safari */
+    const check = document.createElement('label');
     check.className = 'check';
 
     const checkbox = document.createElement('input');
