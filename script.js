@@ -8,6 +8,7 @@ const clearCompletedBtn = document.getElementById('clearCompletedBtn');
 const todayLabel = document.getElementById('todayLabel');
 const progress = document.getElementById('progress');
 const progressFill = document.getElementById('progressFill');
+const mascot = document.getElementById('mascot');
 const panel = document.querySelector('.panel');
 const tabs = document.getElementById('tabs');
 const tabInd = document.getElementById('tabInd');
@@ -497,6 +498,7 @@ function updateUI() {
 
     const percent = total ? Math.round((done / total) * 100) : 0;
     progressFill.style.width = percent + '%';
+    moveMascot(percent);
     progressFill.classList.toggle('has-value', percent > 0);
     progress.setAttribute('aria-valuenow', String(percent));
     panel.classList.toggle('is-complete', total > 0 && done === total);
@@ -540,6 +542,38 @@ document.addEventListener('pointerdown', function (e) {
     if (e.target.closest('#taskList')) return;
     for (const row of taskList.children) row.classList.remove('is-selected');
 });
+
+/* ── التميمة ──────────────────────────────────────────────────── */
+
+let mascotPercent = 0;
+let mascotTimer = null;
+
+/* الإزاحة بالبكسل: صفر عند طرف المسار، وأقصاها عرض المسار ناقص عرض التميمة.
+   في العربية يمتلئ الشريط من اليمين، فالسير إلى اليسار أي إزاحة سالبة. */
+function placeMascot(percent) {
+    const span = progress.clientWidth - mascot.offsetWidth;
+    mascot.style.transform = 'translateX(' + (-(percent / 100) * span).toFixed(1) + 'px)';
+}
+
+/* تنتقل مع رأس الشريط إلى النسبة الجديدة، وتميل في اتّجاه سيرها أثناء ذلك */
+function moveMascot(percent) {
+    placeMascot(percent);
+    if (percent === mascotPercent) return;
+
+    mascot.style.setProperty('--lean', percent > mascotPercent ? '1' : '-1');
+    mascotPercent = percent;
+
+    if (reduceMotion.matches) return;
+
+    mascot.classList.remove('is-pulling');
+    void mascot.offsetWidth;          // إعادة تشغيل الحركة من بدايتها
+    mascot.classList.add('is-pulling');
+
+    clearTimeout(mascotTimer);
+    mascotTimer = setTimeout(function () {
+        mascot.classList.remove('is-pulling');
+    }, 640);
+}
 
 /* ── الإضافة ──────────────────────────────────────────────────── */
 
@@ -660,6 +694,7 @@ moveIndicator(false);
 
 window.addEventListener('resize', function () {
     moveIndicator(false);
+    placeMascot(mascotPercent);
     if (sheetOpen) placeSheet();
 });
 if (document.fonts && document.fonts.ready) {

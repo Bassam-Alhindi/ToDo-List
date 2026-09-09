@@ -31,6 +31,30 @@
 
   <div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="نسبة المهام المكتملة">
     <div class="progress-fill" id="progressFill"></div>
+
+    <span class="mascot" id="mascot" aria-hidden="true">
+      <svg viewBox="0 0 34 28">
+        <defs>
+          <linearGradient id="mascotShell" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f9e7b4"/>
+            <stop offset="0.52" stop-color="#e5c158"/>
+            <stop offset="1" stop-color="#a9801d"/>
+          </linearGradient>
+        </defs>
+
+        <!-- الحبل الذي يشدّه نحو الجزء المنجَز -->
+        <path class="m-rope" d="M23.5 17.5c3.6 .7 6.2 1.6 8.6 3"/>
+
+        <g class="m-body">
+          <circle class="m-shell" cx="15" cy="15" r="9.4"/>
+          <circle class="m-gloss" cx="11.6" cy="11.2" r="3.1"/>
+          <circle class="m-eye" cx="11.9" cy="15.2" r="1.55"/>
+          <circle class="m-eye" cx="18.5" cy="15.2" r="1.55"/>
+          <path class="m-smile" d="M13.1 19.1c1.4 1.35 4.4 1.35 5.8 0"/>
+          <path class="m-tuft" d="M15 5.4V1.9"/>
+        </g>
+      </svg>
+    </span>
   </div>
   <p class="progress-note" id="taskCounter" role="status" aria-live="polite"></p>
 

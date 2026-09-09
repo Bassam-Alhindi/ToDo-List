@@ -4,9 +4,7 @@
 
 Not another grey to-do app. Every surface is deliberate: a deep petrol ground lit by a slow aurora of blended colour, a frosted glass card that the light refracts through, and warm gold reserved for the one thing that matters — progress. Built RTL-first for Arabic, mobile-first for the thumb, and with zero dependencies.
 
-<!-- Drop a screenshot at docs/preview.png and uncomment:
-<p align="center"><img src="docs/preview.png" alt="قائمة المهام" width="720"></p>
--->
+<p align="center"><img src="docs/preview.png" alt="قائمة المهام" width="380"></p>
 
 ---
 
@@ -120,6 +118,31 @@ npx serve .                    # if you prefer Node
 ```
 
 **Browser support:** any modern browser. `backdrop-filter`, `mix-blend-mode` and `conic-gradient` are required for the full effect — Chrome/Edge 76+, Safari 9+, Firefox 103+. In older browsers the app degrades to a flat dark theme and stays fully functional.
+
+---
+
+## Visual Testing
+
+Puppeteer drives a headless Chrome to capture the UI and assert layout, fonts and
+interaction state — so regressions surface as failed checks, not as something you
+notice weeks later.
+
+```bash
+npm install          # puppeteer is a devDependency
+npm run test:ui      # mobile 390x844 -> docs/preview.png
+npm run test:ui:all  # adds desktop + date-picker captures
+npm run test:prod    # runs the same checks against the deployed site
+```
+
+It verifies the title renders in Cairo on one line, the checkbox is a `<label>`
+with a 44px tap area, the add button stays smaller than the input line, the card
+fits the viewport with no horizontal overflow, ambient animations are running,
+and that tapping a row's label actually toggles it — drawing the checkmark and
+strikethrough and persisting the change. Console errors, page errors and failed
+requests are reported too.
+
+> If `npm install` skips Puppeteer's browser download (npm script-blocking
+> policies do this), fetch it explicitly with `npx puppeteer browsers install chrome`.
 
 ---
 

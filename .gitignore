@@ -1,3 +1,10 @@
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Generated test captures (docs/preview.png is kept for the README)
+docs/preview-*.png

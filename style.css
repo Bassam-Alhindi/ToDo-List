@@ -257,8 +257,84 @@ h1 {
 .progress {
     position: relative;
     height: 3px;
+    /* فسحة فوق الشريط تقف فيها التميمة دون أن تزاحم سطر التاريخ */
+    margin-top: 1.85rem;
     margin-inline: calc(var(--pad) * -1);
     background: var(--rule-soft);
+}
+
+/* ---- التميمة: تقف على رأس الشريط وتسحبه إلى نسبة الإنجاز الجديدة ---- */
+
+/* تبدأ ملتصقة بطرف المسار وتنزلق بإزاحة محسوبة بالبكسل: الحركة على
+   transform وحده (تركيب على البطاقة الرسومية، بلا إعادة تخطيط)، ولأنّ
+   الإزاحة محصورة بعرض المسار فهي لا تخرج عن البطاقة أبدًا. */
+.mascot {
+    position: absolute;
+    inset-inline-start: 0;
+    bottom: 2px;
+    width: 27px;
+    height: 23px;
+    pointer-events: none;
+    z-index: 2;
+    transform: translateX(0);
+    transition: transform 0.62s var(--ease);
+    will-change: transform;
+}
+
+.mascot svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    transform-origin: 50% 94%;
+    animation: mascot-idle 3.8s ease-in-out infinite;
+}
+
+.m-shell {
+    fill: url(#mascotShell);
+    stroke: rgba(255, 246, 214, 0.5);
+    stroke-width: 0.6;
+}
+
+.m-gloss { fill: rgba(255, 252, 240, 0.42); }
+.m-eye   { fill: #14110a; }
+
+.m-smile,
+.m-tuft,
+.m-rope {
+    fill: none;
+    stroke-linecap: round;
+}
+
+.m-smile { stroke: #14110a; stroke-width: 1.25; }
+.m-tuft  { stroke: var(--gold-soft); stroke-width: 1.5; }
+
+.m-rope {
+    stroke: var(--gold);
+    stroke-width: 1.4;
+    opacity: 0;
+    transition: opacity 0.28s var(--silk);
+}
+
+/* السكون: تنفّس خفيف في مكانها */
+@keyframes mascot-idle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-1.6px) rotate(0deg); }
+}
+
+/* السحب: تميل في اتّجاه الحركة ثمّ تعتدل واقفةً عند النسبة الجديدة.
+   ‎--lean‎ تحمل إشارة الاتّجاه: ١ عند التقدّم، و‎-١‎ عند التراجع. */
+.mascot.is-pulling svg {
+    animation: mascot-pull 0.62s var(--ease);
+}
+
+.mascot.is-pulling .m-rope { opacity: 1; }
+
+@keyframes mascot-pull {
+    0%   { transform: translateY(0) rotate(0deg); }
+    18%  { transform: translateY(1px) rotate(calc(var(--lean, 1) * -17deg)); }
+    72%  { transform: translateY(1px) rotate(calc(var(--lean, 1) * -13deg)); }
+    100% { transform: translateY(0) rotate(0deg); }
 }
 
 .progress-fill {
@@ -1182,5 +1258,7 @@ button, input {
         box-shadow: 0 0 0.5rem rgba(212, 175, 55, 0.26);
     }
     h1 { animation: none; }
+    .mascot svg { animation: none; }
+    .mascot .m-rope { opacity: 0; }
     li.done { animation: none; background-color: rgba(212, 175, 55, 0.04); }
 }
