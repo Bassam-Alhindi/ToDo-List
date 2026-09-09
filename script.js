@@ -550,11 +550,27 @@ const FIGURE_EFFORT_MS = 620;
 let progressValue = 0;
 let effortTimer = null;
 
-/* القبضة عند منتصف الشخصيّة أفقيًّا، فتلتصق بالمقبض تمامًا في وسط المدى،
-   وتنحصر الإزاحة داخل المسار فلا تخرج الشخصيّة عن البطاقة عند الطرفين. */
+/* القبضة تقع على بعد ثابت من حافّة الشخصيّة المُبتدئة (inline-start):
+   ‎2.5‎ من أصل ‎18‎ في إحداثيّات الـSVG. والشخصيّة موضوعة عند
+   ‎inset-inline-start: 0‎، أي أنّ حافّتها المُبتدئة تنطبق على مبدأ المسار.
+
+   المقبض يبعد عن مبدأ المسار بمقدار ‎(النسبة ÷ ١٠٠) × عرض المسار‎ — وهو
+   المقدار نفسه الذي يحدّد عرض الشريط. فالإزاحة المطلوبة على المحور المنطقيّ:
+
+       الإزاحة = بُعد المقبض − بُعد القبضة
+
+   ثمّ تُترجم إلى translateX الفيزيائيّ بإشارة الاتّجاه: في RTL يسير
+   المحور المنطقيّ نحو اليسار، فالإشارة سالبة. الحساب كلّه منسوب إلى
+   المبدأ المنطقيّ، فلا ينقلب ولا يفترق عن الشريط عند تبديل الاتّجاه. */
+
+const GRIP_FROM_START = 2.5 / 18;
+const INLINE_SIGN =
+    getComputedStyle(document.documentElement).direction === 'rtl' ? -1 : 1;
+
 function figureOffset(percent) {
-    const span = progress.clientWidth - figure.offsetWidth;
-    return -(percent / 100) * span;
+    const knob = (percent / 100) * progress.clientWidth;
+    const grip = figure.offsetWidth * GRIP_FROM_START;
+    return INLINE_SIGN * (knob - grip);
 }
 
 function placeFigure() {

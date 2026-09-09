@@ -162,6 +162,26 @@ async function probeFigure(page, docs, path) {
   }));
   await new Promise((r) => setTimeout(r, 1200));
 
+  /* الربط يُختبر على امتداد المدى كلّه، لا عند نقطة واحدة */
+  const sweep = await page.evaluate(async () => {
+    const worst = { off: 0, inside: true };
+    for (const v of [0, 25, 50, 75, 100]) {
+      window.setProgress(v);
+      await new Promise((r) => setTimeout(r, 750));
+      const t = document.getElementById('progress').getBoundingClientRect();
+      const f = document.getElementById('progressFill').getBoundingClientRect();
+      const g = document.querySelector('.fig-grip').getBoundingClientRect();
+      const box = document.getElementById('figure').getBoundingClientRect();
+      const card = document.querySelector('.panel').getBoundingClientRect();
+      const knobX = t.right - f.width;
+      worst.off = Math.max(worst.off, Math.abs((g.left + g.width / 2) - knobX));
+      if (box.left < card.left - 0.5 || box.right > card.right + 0.5) worst.inside = false;
+    }
+    window.updateUI();
+    return { off: +worst.off.toFixed(1), inside: worst.inside };
+  });
+  await new Promise((r) => setTimeout(r, 900));
+
   const end = await page.evaluate(() => {
     const m = document.getElementById('figure');
     const r = m.getBoundingClientRect();
@@ -210,6 +230,8 @@ async function probeFigure(page, docs, path) {
     droppedFrames: dropped,
     settledIdle: end.idle === 'figure-idle' && !end.pulling,
     gripOffsetPx: +Math.abs(end.gripX - end.handleX).toFixed(1),
+    anchorWorstPx: sweep.off,
+    withinCard: sweep.inside,
     fillMatchesValue: Math.abs(end.renderedPct - end.fillPct) < 1.5,
     valueAtRest: end.fillPct,
 
@@ -294,8 +316,11 @@ async function probeInteraction(page) {
        mas.medianGapMs + 'ms (' + mas.droppedFrames + ' dropped) — that window also' +
        ' carries the strikethrough cascade and 16 spark elements, and this' +
        ' headless Chrome renders the blurred aurora in software.');
-    ok('grip rests on the handle', mas.gripOffsetPx <= 12,
-       mas.gripOffsetPx + 'px from the knob');
+    ok('grip anchored to the handle', mas.gripOffsetPx <= 4,
+       mas.gripOffsetPx + 'px from the knob centre');
+    ok('stays anchored across the whole range', mas.anchorWorstPx <= 4,
+       'worst ' + mas.anchorWorstPx + 'px over 0/25/50/75/100%');
+    ok('figure sits within the card', mas.withinCard);
     ok('returns to idle when stopped', mas.settledIdle);
 
     ok('stays within the track', mas.withinTrack);
