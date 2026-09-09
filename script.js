@@ -564,7 +564,11 @@ function addTask(event) {
 
     taskInput.value = '';
     setDate(todayISO());
-    taskInput.focus();
+
+    /* على الجوّال: إزالة التركيز تُخفي لوحة المفاتيح فورًا بعد الإضافة.
+       على سطح المكتب يبقى التركيز ليتواصل إدخال المهام بسرعة. */
+    if (window.matchMedia('(pointer: coarse)').matches) taskInput.blur();
+    else taskInput.focus();
 }
 
 composer.addEventListener('submit', addTask);

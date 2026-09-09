@@ -1,11 +1,11 @@
-# مهام اليوم · Mahaam Al-Yawm
+# قائمة المهام · Qa’imat Al-Mahaam
 
 **A dark-luxury task list in Arabic — petrol ink, manuscript gold, and light that never stops moving.**
 
 Not another grey to-do app. Every surface is deliberate: a deep petrol ground lit by a slow aurora of blended colour, a frosted glass card that the light refracts through, and warm gold reserved for the one thing that matters — progress. Built RTL-first for Arabic, mobile-first for the thumb, and with zero dependencies.
 
 <!-- Drop a screenshot at docs/preview.png and uncomment:
-<p align="center"><img src="docs/preview.png" alt="مهام اليوم" width="720"></p>
+<p align="center"><img src="docs/preview.png" alt="قائمة المهام" width="720"></p>
 -->
 
 ---
