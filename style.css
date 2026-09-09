@@ -257,20 +257,40 @@ h1 {
 .progress {
     position: relative;
     height: 3px;
-    /* فسحة فوق الشريط تجلس فيها الشخصيّة دون أن تزاحم سطر التاريخ */
-    margin-top: 1.85rem;
+    margin-top: 0.5rem;
     border-radius: 999px;
     background: var(--rule-soft);
 }
 
-/* الشريط ورأسه المتوهّج: العرض مشتقّ من ‎--progress‎ لا من كتابة مستقلّة */
 .progress-fill {
     position: absolute;
     inset-block: 0;
     inset-inline-start: 0;
     width: calc(var(--progress, 0) * 1%);
+    overflow: hidden;
+    border-radius: 999px;
     background: linear-gradient(to left, var(--gold-deep), var(--gold) 62%, var(--gold-soft));
     transition: width 0.6s var(--ease);
+}
+
+.progress-fill::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        105deg,
+        transparent 25%,
+        rgba(255, 252, 240, 0.18) 38%,
+        rgba(255, 255, 255, 0.42) 50%,
+        rgba(255, 252, 240, 0.18) 62%,
+        transparent 75%
+    );
+    animation: bar-shimmer 2.6s var(--silk) infinite;
+}
+
+@keyframes bar-shimmer {
+    0%   { transform: translateX(120%); }
+    100% { transform: translateX(-120%); }
 }
 
 .progress-fill::after {
@@ -287,80 +307,6 @@ h1 {
 }
 
 .progress-fill.has-value::after { opacity: 1; }
-
-/* ---- الشخصيّة: تقف على المقبض وتدفعه أو تسحبه معها ---- */
-
-.figure {
-    position: absolute;
-    inset-inline-start: 0;
-    /* قاعدة الصندوق على محور الخطّ، فتجلس الشخصيّة عليه لا فوقه معلّقة */
-    bottom: -0.5px;
-    width: 18px;
-    height: 22px;
-    pointer-events: none;
-    z-index: 2;
-    /* الإزاحة بالبكسل مشتقّة من النسبة نفسها التي تحرّك الشريط،
-       وتجري على transform وحده فتُركَّب على البطاقة الرسومية. */
-    transform: translateX(0);
-    transition: transform 0.6s var(--ease);
-    will-change: transform;
-}
-
-.figure svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    /* المحور عند القدمين، فتميل الشخصيّة دون أن تفلت قبضتها من المقبض */
-    /* المحور عند مقعدها، فلا تفلت القبضة من المقبض أثناء الميل */
-    transform-origin: 86% 96%;
-    animation: figure-idle 4.2s ease-in-out infinite;
-}
-
-/* شخصيّة سوداء صريحة تقطع الشريط الذهبيّ، مع حافّة ذهبيّة رفيعة
-   تُبقي ظلّها مقروءًا فوق اللوح الداكن حيث لا ذهب خلفها */
-.figure svg {
-    filter:
-        drop-shadow(0 0 1px rgba(229, 193, 88, 0.95))
-        drop-shadow(0 0 2.5px rgba(229, 193, 88, 0.45));
-}
-
-.fig-stroke path {
-    fill: none;
-    stroke: #000000;
-    stroke-width: 1.9;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.fig-head { fill: #000000; }
-
-/* القبضة تُطابق المقبض الذهبيّ لونًا فتبدو ممسكة به */
-.fig-grip {
-    fill: #000000;
-    stroke: var(--gold-soft);
-    stroke-width: 0.9;
-}
-
-/* السكون: وقفة معتدلة وتنفّس خفيف */
-/* السكون: جلسة ثابتة وتنفّس بالكاد يُحسّ */
-@keyframes figure-idle {
-    0%, 100% { transform: rotate(0deg); }
-    50%      { transform: rotate(-1.6deg); }
-}
-
-/* الجهد: ميل في اتّجاه السير. ‎--lean‎ تحمل الإشارة:
-   ١ عند التقدّم (دفع)، و‎-١‎ عند التراجع (شدّ إلى الخلف). */
-.figure.is-effort svg {
-    animation: figure-effort 0.6s var(--ease);
-}
-
-@keyframes figure-effort {
-    0%   { transform: rotate(0deg); }
-    20%  { transform: rotate(calc(var(--lean, 1) * -16deg)); }
-    74%  { transform: rotate(calc(var(--lean, 1) * -13deg)); }
-    100% { transform: rotate(0deg); }
-}
 
 .progress-note {
     margin: 0.5rem 0 0.9rem;
@@ -453,6 +399,63 @@ h1 {
 
 .date-pill:active { transform: scale(0.97); }
 
+.priority-pill {
+    position: relative;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 1.85rem;
+    padding: 0 0.6rem;
+    font: inherit;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: color 0.3s var(--silk), background 0.3s var(--silk),
+                border-color 0.3s var(--silk), transform 0.3s var(--pop);
+}
+
+.priority-pill::after {
+    content: "";
+    position: absolute;
+    inset: -0.45rem -0.25rem;
+}
+
+.priority-pill:active { transform: scale(0.97); }
+
+.priority-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--text-faint);
+    transition: background 0.3s var(--silk);
+}
+
+.priority-pill[data-priority="high"] {
+    color: #ff6b6b;
+}
+.priority-pill[data-priority="high"] .priority-dot {
+    background: #ff6b6b;
+}
+
+.priority-pill[data-priority="medium"] {
+    color: var(--text-faint);
+}
+.priority-pill[data-priority="medium"] .priority-dot {
+    background: var(--text-faint);
+}
+
+.priority-pill[data-priority="low"] {
+    color: #6b9eff;
+}
+.priority-pill[data-priority="low"] .priority-dot {
+    background: #6b9eff;
+}
+
 .date-pill.has-date {
     color: var(--text-dim);
 }
@@ -469,12 +472,12 @@ h1 {
 #addBtn {
     position: relative;
     flex: 0 0 auto;
-    width: 2.15rem;
-    height: 2.15rem;
+    width: 1.65rem;
+    height: 1.65rem;
     display: grid;
     place-items: center;
     border: none;
-    border-radius: 0.7rem;
+    border-radius: 0.55rem;
     cursor: pointer;
     color: #14110a;
     background: linear-gradient(152deg,
@@ -482,8 +485,8 @@ h1 {
     box-shadow:
         inset 0 1px 0 rgba(255, 246, 214, 0.55),
         inset 0 -1px 0 rgba(0, 0, 0, 0.22),
-        0 2px 10px rgba(212, 175, 55, 0.22),
-        0 0 0 1px rgba(212, 175, 55, 0.18);
+        0 2px 8px rgba(212, 175, 55, 0.18),
+        0 0 0 1px rgba(212, 175, 55, 0.15);
     transition: transform 0.34s var(--pop), box-shadow 0.34s var(--silk),
                 filter 0.3s var(--silk);
 }
@@ -504,16 +507,16 @@ h1 {
 #addBtn::after {
     content: "";
     position: absolute;
-    inset: -0.36rem;
+    inset: -0.45rem;
     border-radius: inherit;
 }
 
 #addBtn svg {
     position: relative;
-    width: 0.95rem;
-    height: 0.95rem;
+    width: 0.7rem;
+    height: 0.7rem;
     stroke: currentColor;
-    stroke-width: 2.3;
+    stroke-width: 2.4;
     stroke-linecap: round;
     fill: none;
     /* الزائد المستدير بزاوية 90° يعود إلى ذاته، فالدوران ينحلّ تمامًا */
@@ -644,6 +647,9 @@ li {
     min-height: 3.35rem;
     padding: 0.6rem var(--pad);
     overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
     transition: background 0.34s var(--silk), opacity 0.34s var(--silk),
                 transform 0.36s var(--silk), height 0.36s var(--silk),
                 padding 0.36s var(--silk);
@@ -704,12 +710,24 @@ li.removing {
     margin: 0;
     width: 1.5rem;
     height: 1.5rem;
-    border: 1.5px solid rgba(255, 255, 255, 0.26);
+    border: 1.5px solid rgba(255, 255, 255, 0.14);
     border-radius: 0.5rem;
-    background: rgba(4, 10, 16, 0.5);
+    background: rgba(4, 10, 16, 0.35);
     cursor: pointer;
+    overflow: hidden;
     transition: border-color 0.3s var(--silk), background 0.34s var(--silk),
                 transform 0.3s var(--pop);
+}
+
+.check input::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, var(--gold-soft), var(--gold));
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.4s var(--ease);
 }
 
 /* النبضة على الغلاف لا على input، فلا تتصارع مع :hover و:active */
@@ -722,16 +740,11 @@ li.removing {
 }
 
 .check input:checked {
-    background: linear-gradient(145deg, var(--gold-soft), var(--gold) 55%, var(--gold-deep));
     border-color: transparent;
-    /* توهّج ذهبيّ يتنفّس ببطء: حضور هادئ لا يخطف البصر عن النصّ */
-    animation: done-glow 3.4s var(--silk) infinite;
 }
 
-@keyframes done-glow {
-    0%,
-    100% { box-shadow: 0 0 0.5rem rgba(212, 175, 55, 0.26); }
-    50%  { box-shadow: 0 0 1.15rem 0.1rem rgba(212, 175, 55, 0.55); }
+.check input:checked::before {
+    transform: scaleY(1);
 }
 
 .check input:active { transform: scale(0.9); }
@@ -765,14 +778,14 @@ li.removing {
     position: absolute;
     inset: 0;
     border-radius: 0.5rem;
-    border: 2px solid var(--gold);
-    animation: pulse-ring 0.62s var(--silk) forwards;
+    border: 1.5px solid rgba(212, 175, 55, 0.35);
+    animation: pulse-ring 0.5s var(--silk) forwards;
     pointer-events: none;
 }
 
 @keyframes pulse-ring {
-    from { transform: scale(1);   opacity: 0.55; }
-    to   { transform: scale(1.9); opacity: 0; }
+    from { transform: scale(1);   opacity: 0.35; }
+    to   { transform: scale(1.5); opacity: 0; }
 }
 
 /* النصّ والشارة مجموعة واحدة: تلتفّ الشارة تحت النصّ حين يضيق السطر،
@@ -784,12 +797,16 @@ li.removing {
     flex-wrap: wrap;
     align-items: center;
     gap: 0.25rem 0.55rem;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .task-text {
     flex: 0 1 auto;
     min-width: 0;
     cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .task-ink {
@@ -801,6 +818,8 @@ li.removing {
     background-size: 0% 1.5px;
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
+    -webkit-user-select: none;
+    user-select: none;
     transition: background-size 0.5s var(--draw) 0.14s, color 0.46s var(--silk) 0.22s;
 }
 
@@ -809,14 +828,8 @@ li.done .task-ink {
     color: var(--text-faint);
 }
 
-/* حضور ذهبيّ هادئ يتنفّس على امتداد السطر المنجَز */
 li.done {
-    animation: row-done-glow 4.6s ease-in-out infinite;
-}
-
-@keyframes row-done-glow {
-    0%, 100% { background-color: rgba(212, 175, 55, 0.022); }
-    50%      { background-color: rgba(212, 175, 55, 0.07); }
+    background-color: rgba(212, 175, 55, 0.03);
 }
 
 .due-badge {
@@ -829,6 +842,24 @@ li.done {
     border: none;
     opacity: 0.75;
     transition: opacity 0.3s var(--ease), color 0.3s var(--ease);
+}
+
+.priority-badge {
+    flex: 0 0 auto;
+    font-size: 0.6875rem;
+    padding: 0;
+    white-space: nowrap;
+    background: none;
+    border: none;
+    opacity: 0.85;
+}
+
+li[data-priority="high"] .priority-badge {
+    color: #ff6b6b;
+}
+
+li[data-priority="low"] .priority-badge {
+    color: #6b9eff;
 }
 
 /* "اليوم" هو الحالة الشائعة الآن، فيبقى خافتًا لا يزاحم نصّ المهمة */
@@ -1116,14 +1147,14 @@ li:focus-within .del {
     height: var(--h);
     background: var(--c);
     border-radius: var(--r);
-    opacity: 0.75;
-    animation: spark 0.72s var(--ease) forwards;
+    opacity: 0.55;
+    animation: spark 0.85s var(--ease) forwards;
 }
 
 @keyframes spark {
-    0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0.75; }
-    65%  { transform: translate(calc(var(--dx) * 0.75), calc(var(--dy) * 0.75 - 0.4rem)) rotate(var(--rot)) scale(0.9); opacity: 0.7; }
-    100% { transform: translate(var(--dx), calc(var(--dy) + 1.5rem)) rotate(var(--rot)) scale(0.25); opacity: 0; }
+    0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0.55; }
+    50%  { transform: translate(calc(var(--dx) * 0.6), calc(var(--dy) * 0.6 - 0.3rem)) rotate(var(--rot)) scale(0.85); opacity: 0.5; }
+    100% { transform: translate(var(--dx), calc(var(--dy) + 1rem)) rotate(var(--rot)) scale(0.2); opacity: 0; }
 }
 
 /* ---- focus ---- */
@@ -1143,6 +1174,10 @@ button, input {
 
 @media (hover: hover) and (pointer: fine) {
     .composer:hover:not(:focus-within) { border-color: rgba(255, 255, 255, 0.18); }
+
+    .priority-pill:hover {
+        background: rgba(255, 255, 255, 0.09);
+    }
 
     .date-pill:hover {
         color: var(--text);
@@ -1214,10 +1249,10 @@ button, input {
     .progress-note { margin-bottom: 1.1rem; }
 
     /* الحاوية نفسها، لكن محتواها ينتظم في سطر واحد.
-       شبكة بعمود مرن minmax(0,1fr): الحقل ينكمش ولا يطفح الزرّ خارجها. */
+       شبكة بأعمدة مرنة: الحقل ينكمش ولا تطفح الأزرار خارجها. */
     .composer {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-columns: minmax(0, 1fr) auto auto auto;
         align-items: center;
         gap: 0.4rem;
         margin-bottom: 1rem;
@@ -1232,7 +1267,7 @@ button, input {
     /* يرفع الزرّ والقرص ليصيرا خليّتين مباشرتين في الشبكة */
     .composer-row { display: contents; }
     .date-pill { min-height: 1.85rem; }
-    #addBtn { width: 2rem; height: 2rem; }
+    #addBtn { width: 1.5rem; height: 1.5rem; }
 
     .tab { min-height: 2.2rem; font-size: 0.8125rem; }
     #taskList { max-height: min(52vh, 24rem); }
@@ -1254,11 +1289,7 @@ button, input {
     /* زرّ الحذف يبقى سياقيًّا: الكشف فوريّ بلا انتقال */
     .check.pulse,
     .check.pulse::after { animation: none; }
-    .check input:checked {
-        animation: none;
-        box-shadow: 0 0 0.5rem rgba(212, 175, 55, 0.26);
-    }
     h1 { animation: none; }
-    .figure svg { animation: none; }
-    li.done { animation: none; background-color: rgba(212, 175, 55, 0.04); }
+    .progress-fill::before { animation: none; }
+    li.done { background-color: rgba(212, 175, 55, 0.04); }
 }

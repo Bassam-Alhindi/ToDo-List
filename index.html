@@ -31,27 +31,16 @@
 
   <div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="نسبة المهام المكتملة">
     <div class="progress-fill" id="progressFill"></div>
-
-    <!-- تجلس على الخطّ وتقبض المقبض؛ القبضة على بعد ثابت من حافّتها
-         المُبتدئة، وعليه يُبنى حساب الموضع في script.js -->
-    <span class="figure" id="figure" aria-hidden="true">
-      <svg viewBox="0 0 18 22">
-        <g class="fig-stroke">
-          <path class="fig-leg"  d="M7 20.6H3.4l-1.2 1.2"/>
-          <path class="fig-arm-back" d="M8.4 13.6L5.6 18.2"/>
-          <path class="fig-spine" d="M7 20.6L8.5 12.4"/>
-          <path class="fig-arm-front" d="M8.4 13.4L15.5 20.4"/>
-        </g>
-        <circle class="fig-head" cx="9.2" cy="8.9" r="3.3"/>
-        <circle class="fig-grip" cx="15.5" cy="20.4" r="1.5"/>
-      </svg>
-    </span>
   </div>
   <p class="progress-note" id="taskCounter" role="status" aria-live="polite"></p>
 
   <form class="composer" id="composer" autocomplete="off">
     <input type="text" id="taskInput" name="task" placeholder="ما الذي تريد إنجازه؟" aria-label="مهمة جديدة">
     <div class="composer-row">
+      <button type="button" class="priority-pill" id="priorityPill" data-priority="medium" aria-label="أولوية: متوسطة">
+        <span class="priority-dot"></span>
+        <span id="priorityPillText">متوسطة</span>
+      </button>
       <button type="button" class="date-pill" id="datePill" aria-haspopup="dialog" aria-expanded="false">
         <svg class="pill-icon" viewBox="0 0 24 24" aria-hidden="true">
           <rect x="3" y="5" width="18" height="16" rx="3"/>

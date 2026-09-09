@@ -8,7 +8,6 @@ const clearCompletedBtn = document.getElementById('clearCompletedBtn');
 const todayLabel = document.getElementById('todayLabel');
 const progress = document.getElementById('progress');
 const progressFill = document.getElementById('progressFill');
-const figure = document.getElementById('figure');
 const panel = document.querySelector('.panel');
 const tabs = document.getElementById('tabs');
 const tabInd = document.getElementById('tabInd');
@@ -17,6 +16,8 @@ const fx = document.getElementById('fx');
 
 const datePill = document.getElementById('datePill');
 const datePillText = document.getElementById('datePillText');
+const priorityPill = document.getElementById('priorityPill');
+const priorityPillText = document.getElementById('priorityPillText');
 const dateSheet = document.getElementById('dateSheet');
 const sheetScrim = document.getElementById('sheetScrim');
 const quickRow = document.getElementById('quickRow');
@@ -263,6 +264,26 @@ dateSheet.addEventListener('keydown', function (e) {
     }
 });
 
+/* ── منتقي الأولوية ────────────────────────────────────────────── */
+
+const PRIORITY_LABELS = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' };
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+const PRIORITY_CYCLE = ['medium', 'high', 'low'];
+
+let selectedPriority = 'medium';
+
+function updatePriorityPill() {
+    priorityPill.dataset.priority = selectedPriority;
+    priorityPillText.textContent = PRIORITY_LABELS[selectedPriority];
+    priorityPill.setAttribute('aria-label', 'أولوية: ' + PRIORITY_LABELS[selectedPriority]);
+}
+
+priorityPill.addEventListener('click', function () {
+    const idx = PRIORITY_CYCLE.indexOf(selectedPriority);
+    selectedPriority = PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length];
+    updatePriorityPill();
+});
+
 /* ── الرشّ الذهبي عند إنجاز مهمة ──────────────────────────────── */
 
 const SPARK_COLORS = ['#d4af37', '#e5c158', '#9c7d23', '#f3e6c0'];
@@ -275,24 +296,24 @@ function burst(anchor) {
     const originY = rect.top + rect.height / 2;
     const frag = document.createDocumentFragment();
 
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < 10; i++) {
         const p = document.createElement('i');
         p.className = 'spark';
 
-        const angle = (Math.PI * 2 * i) / 16 + Math.random() * 0.5;
-        const dist = 46 + Math.random() * 62;
-        const round = Math.random() > 0.55;
+        const angle = (Math.PI * 2 * i) / 10 + Math.random() * 0.4;
+        const dist = 28 + Math.random() * 38;
+        const round = Math.random() > 0.6;
 
         p.style.left = originX + 'px';
         p.style.top = originY + 'px';
         p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
         p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
-        p.style.setProperty('--rot', Math.round(Math.random() * 540 - 270) + 'deg');
+        p.style.setProperty('--rot', Math.round(Math.random() * 360 - 180) + 'deg');
         p.style.setProperty('--c', SPARK_COLORS[i % SPARK_COLORS.length]);
-        p.style.setProperty('--w', (round ? 5 : 3) + 'px');
-        p.style.setProperty('--h', (round ? 5 : 9) + 'px');
+        p.style.setProperty('--w', (round ? 3.5 : 2) + 'px');
+        p.style.setProperty('--h', (round ? 3.5 : 6) + 'px');
         p.style.setProperty('--r', round ? '50%' : '1px');
-        p.style.animationDelay = Math.random() * 60 + 'ms';
+        p.style.animationDelay = Math.random() * 80 + 'ms';
 
         p.addEventListener('animationend', () => p.remove());
         frag.appendChild(p);
@@ -303,9 +324,11 @@ function burst(anchor) {
 
 /* ── بناء سطر المهمة ──────────────────────────────────────────── */
 
-function createTaskElement(text, isDone, dueDate) {
+function createTaskElement(text, isDone, dueDate, priority) {
     const li = document.createElement('li');
     li.dataset.text = text;
+    li.dataset.priority = priority || 'medium';
+    li.dataset.created = Date.now();
     if (isDone) li.classList.add('done');
 
     /* <label> يمرّر اللمسة إلى المربّع تمريرًا أصليًّا في كلّ المتصفّحات،
@@ -339,11 +362,16 @@ function createTaskElement(text, isDone, dueDate) {
         }
 
         /* الكتابة في localStorage متزامنة، وupdateUI يفرض تخطيطًا.
-           تأجيلهما إطارًا واحدًا يترك إطار انطلاق الحركة خاليًا. */
+           تأجيلهما إطارًا واحدًا يترك إطار انطلاق الحركة خاليًا.
+           تأجيل الفرز 400ms يسمح بتشغيل حركات الملء والنبض والرشّ كاملة. */
         requestAnimationFrame(function () {
             updateUI();
             saveTasks();
         });
+        
+        setTimeout(function () {
+            sortTasks();
+        }, 400);
     });
 
     check.addEventListener('animationend', function (e) {
@@ -372,6 +400,13 @@ function createTaskElement(text, isDone, dueDate) {
 
     li.appendChild(check);
     li.appendChild(main);
+
+    if (priority && priority !== 'medium') {
+        const pBadge = document.createElement('span');
+        pBadge.className = 'priority-badge';
+        pBadge.textContent = PRIORITY_LABELS[priority];
+        main.appendChild(pBadge);
+    }
 
     if (dueDate) {
         li.dataset.due = dueDate;
@@ -422,6 +457,7 @@ function removeTask(li) {
     setTimeout(function () {
         li.remove();
         saveTasks();
+        sortTasks();
         updateUI();
     }, 340);
 }
@@ -434,7 +470,9 @@ function saveTasks() {
         tasks.push({
             text: li.dataset.text,
             done: li.classList.contains('done'),
-            due: li.dataset.due || ''
+            due: li.dataset.due || '',
+            priority: li.dataset.priority || 'medium',
+            created: Number(li.dataset.created) || Date.now()
         });
     }
     try {
@@ -463,8 +501,12 @@ function loadTasks() {
 
     for (const task of tasks) {
         if (!task || !task.text) continue;
-        taskList.appendChild(createTaskElement(task.text, !!task.done, task.due));
+        taskList.appendChild(createTaskElement(task.text, !!task.done, task.due, task.priority || 'medium'));
+        if (task.created) {
+            taskList.lastChild.dataset.created = String(task.created);
+        }
     }
+    sortTasks();
 }
 
 /* ── تحديث الواجهة ────────────────────────────────────────────── */
@@ -539,67 +581,47 @@ document.addEventListener('pointerdown', function (e) {
     for (const row of taskList.children) row.classList.remove('is-selected');
 });
 
-/* ── التميمة ──────────────────────────────────────────────────── */
-
-/* ── التقدّم والشخصيّة ───────────────────────────────────────────
-   مصدر واحد للقيمة: setProgress يكتب ‎--progress‎، ومنها يُشتقّ عرض
-   الشريط (في CSS) وموضع الشخصيّة (بالبكسل هنا). لا سبيل لافتراقهما. */
-
-const FIGURE_EFFORT_MS = 620;
+/* ── التقدّم ────────────────────────────────────────────────────── */
 
 let progressValue = 0;
-let effortTimer = null;
-
-/* القبضة تقع على بعد ثابت من حافّة الشخصيّة المُبتدئة (inline-start):
-   ‎2.5‎ من أصل ‎18‎ في إحداثيّات الـSVG. والشخصيّة موضوعة عند
-   ‎inset-inline-start: 0‎، أي أنّ حافّتها المُبتدئة تنطبق على مبدأ المسار.
-
-   المقبض يبعد عن مبدأ المسار بمقدار ‎(النسبة ÷ ١٠٠) × عرض المسار‎ — وهو
-   المقدار نفسه الذي يحدّد عرض الشريط. فالإزاحة المطلوبة على المحور المنطقيّ:
-
-       الإزاحة = بُعد المقبض − بُعد القبضة
-
-   ثمّ تُترجم إلى translateX الفيزيائيّ بإشارة الاتّجاه: في RTL يسير
-   المحور المنطقيّ نحو اليسار، فالإشارة سالبة. الحساب كلّه منسوب إلى
-   المبدأ المنطقيّ، فلا ينقلب ولا يفترق عن الشريط عند تبديل الاتّجاه. */
-
-const GRIP_FROM_START = 2.5 / 18;
-const INLINE_SIGN =
-    getComputedStyle(document.documentElement).direction === 'rtl' ? -1 : 1;
-
-function figureOffset(percent) {
-    const knob = (percent / 100) * progress.clientWidth;
-    const grip = figure.offsetWidth * GRIP_FROM_START;
-    return INLINE_SIGN * (knob - grip);
-}
-
-function placeFigure() {
-    figure.style.transform = 'translateX(' + figureOffset(progressValue).toFixed(1) + 'px)';
-}
 
 function setProgress(percent) {
     const next = Math.max(0, Math.min(100, Math.round(percent)));
-    const changed = next !== progressValue;
-    const forward = next > progressValue;
-
     progressValue = next;
     progress.style.setProperty('--progress', String(next));
     progress.setAttribute('aria-valuenow', String(next));
     progressFill.classList.toggle('has-value', next > 0);
-    placeFigure();
+}
 
-    if (!changed || reduceMotion.matches) return;
+/* ── الفرز: تاريخ استحقاق → أولوية → تاريخ إنشاء ─────────────── */
 
-    /* الميل في اتّجاه السير: دفعًا إلى الأمام أو شدًّا إلى الخلف */
-    figure.style.setProperty('--lean', forward ? '1' : '-1');
-    figure.classList.remove('is-effort');
-    void figure.offsetWidth;               // إعادة تشغيل الحركة من بدايتها
-    figure.classList.add('is-effort');
+function sortTasks() {
+    const items = Array.from(taskList.children);
 
-    clearTimeout(effortTimer);
-    effortTimer = setTimeout(function () {
-        figure.classList.remove('is-effort');
-    }, FIGURE_EFFORT_MS);
+    items.sort(function (a, b) {
+        if (a.classList.contains('removing') || b.classList.contains('removing')) return 0;
+
+        // أولاً: تاريخ الاستحقاق (تصاعدي، التواريخ الفارغة في النهاية)
+        const dA = a.dataset.due || '';
+        const dB = b.dataset.due || '';
+        if (dA !== dB) {
+            if (!dA) return 1;
+            if (!dB) return -1;
+            return dA < dB ? -1 : 1;
+        }
+
+        // ثانيًا: الأولوية (عالية > متوسطة > منخفضة)
+        const pA = PRIORITY_ORDER[a.dataset.priority] || 1;
+        const pB = PRIORITY_ORDER[b.dataset.priority] || 1;
+        if (pA !== pB) return pA - pB;
+
+        // ثالثًا: تاريخ الإنشاء (الأحدث أولاً)
+        const cA = Number(a.dataset.created) || 0;
+        const cB = Number(b.dataset.created) || 0;
+        return cB - cA;
+    });
+
+    for (const li of items) taskList.appendChild(li);
 }
 
 /* ── الإضافة ──────────────────────────────────────────────────── */
@@ -613,7 +635,7 @@ function addTask(event) {
         return;
     }
 
-    const li = createTaskElement(taskText, false, selectedDate);
+    const li = createTaskElement(taskText, false, selectedDate, selectedPriority);
     li.classList.add('is-new');
     li.addEventListener('animationend', function once(e) {
         if (e.target !== li) return;
@@ -622,11 +644,14 @@ function addTask(event) {
     });
 
     taskList.appendChild(li);
+    sortTasks();
     saveTasks();
     updateUI();
 
     taskInput.value = '';
     setDate(todayISO());
+    selectedPriority = 'medium';
+    updatePriorityPill();
 
     /* على الجوّال: إزالة التركيز تُخفي لوحة المفاتيح فورًا بعد الإضافة.
        على سطح المكتب يبقى التركيز ليتواصل إدخال المهام بسرعة. */
@@ -703,6 +728,7 @@ clearCompletedBtn.addEventListener('click', function () {
     setTimeout(function () {
         doneItems.forEach(function (li) { li.remove(); });
         saveTasks();
+        sortTasks();
         updateUI();
     }, 340 + doneItems.length * 45);
 });
@@ -714,6 +740,7 @@ todayLabel.textContent = new Intl.DateTimeFormat('ar-u-nu-arab', {
 }).format(new Date());
 
 updatePill();
+updatePriorityPill();
 renderCal();
 loadTasks();
 updateUI();
@@ -721,7 +748,6 @@ moveIndicator(false);
 
 window.addEventListener('resize', function () {
     moveIndicator(false);
-    placeFigure();
     if (sheetOpen) placeSheet();
 });
 if (document.fonts && document.fonts.ready) {
