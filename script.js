@@ -350,6 +350,8 @@ function createTaskElement(text, isDone, dueDate, priority) {
     tick.appendChild(tickPath);
     check.appendChild(tick);
 
+    checkbox.addEventListener('click', function (e) { e.stopPropagation(); });
+
     checkbox.addEventListener('change', function () {
         li.classList.toggle('done', checkbox.checked);
         refreshDueState(li);
