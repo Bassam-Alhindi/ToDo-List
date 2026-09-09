@@ -8,7 +8,7 @@ const clearCompletedBtn = document.getElementById('clearCompletedBtn');
 const todayLabel = document.getElementById('todayLabel');
 const progress = document.getElementById('progress');
 const progressFill = document.getElementById('progressFill');
-const mascot = document.getElementById('mascot');
+const figure = document.getElementById('figure');
 const panel = document.querySelector('.panel');
 const tabs = document.getElementById('tabs');
 const tabInd = document.getElementById('tabInd');
@@ -496,11 +496,7 @@ function updateUI() {
         if (show) anyVisible = true;
     }
 
-    const percent = total ? Math.round((done / total) * 100) : 0;
-    progressFill.style.width = percent + '%';
-    moveMascot(percent);
-    progressFill.classList.toggle('has-value', percent > 0);
-    progress.setAttribute('aria-valuenow', String(percent));
+    setProgress(total ? (done / total) * 100 : 0);
     panel.classList.toggle('is-complete', total > 0 && done === total);
 
     if (total === 0) {
@@ -545,34 +541,49 @@ document.addEventListener('pointerdown', function (e) {
 
 /* ── التميمة ──────────────────────────────────────────────────── */
 
-let mascotPercent = 0;
-let mascotTimer = null;
+/* ── التقدّم والشخصيّة ───────────────────────────────────────────
+   مصدر واحد للقيمة: setProgress يكتب ‎--progress‎، ومنها يُشتقّ عرض
+   الشريط (في CSS) وموضع الشخصيّة (بالبكسل هنا). لا سبيل لافتراقهما. */
 
-/* الإزاحة بالبكسل: صفر عند طرف المسار، وأقصاها عرض المسار ناقص عرض التميمة.
-   في العربية يمتلئ الشريط من اليمين، فالسير إلى اليسار أي إزاحة سالبة. */
-function placeMascot(percent) {
-    const span = progress.clientWidth - mascot.offsetWidth;
-    mascot.style.transform = 'translateX(' + (-(percent / 100) * span).toFixed(1) + 'px)';
+const FIGURE_EFFORT_MS = 620;
+
+let progressValue = 0;
+let effortTimer = null;
+
+/* القبضة عند منتصف الشخصيّة أفقيًّا، فتلتصق بالمقبض تمامًا في وسط المدى،
+   وتنحصر الإزاحة داخل المسار فلا تخرج الشخصيّة عن البطاقة عند الطرفين. */
+function figureOffset(percent) {
+    const span = progress.clientWidth - figure.offsetWidth;
+    return -(percent / 100) * span;
 }
 
-/* تنتقل مع رأس الشريط إلى النسبة الجديدة، وتميل في اتّجاه سيرها أثناء ذلك */
-function moveMascot(percent) {
-    placeMascot(percent);
-    if (percent === mascotPercent) return;
+function placeFigure() {
+    figure.style.transform = 'translateX(' + figureOffset(progressValue).toFixed(1) + 'px)';
+}
 
-    mascot.style.setProperty('--lean', percent > mascotPercent ? '1' : '-1');
-    mascotPercent = percent;
+function setProgress(percent) {
+    const next = Math.max(0, Math.min(100, Math.round(percent)));
+    const changed = next !== progressValue;
+    const forward = next > progressValue;
 
-    if (reduceMotion.matches) return;
+    progressValue = next;
+    progress.style.setProperty('--progress', String(next));
+    progress.setAttribute('aria-valuenow', String(next));
+    progressFill.classList.toggle('has-value', next > 0);
+    placeFigure();
 
-    mascot.classList.remove('is-pulling');
-    void mascot.offsetWidth;          // إعادة تشغيل الحركة من بدايتها
-    mascot.classList.add('is-pulling');
+    if (!changed || reduceMotion.matches) return;
 
-    clearTimeout(mascotTimer);
-    mascotTimer = setTimeout(function () {
-        mascot.classList.remove('is-pulling');
-    }, 640);
+    /* الميل في اتّجاه السير: دفعًا إلى الأمام أو شدًّا إلى الخلف */
+    figure.style.setProperty('--lean', forward ? '1' : '-1');
+    figure.classList.remove('is-effort');
+    void figure.offsetWidth;               // إعادة تشغيل الحركة من بدايتها
+    figure.classList.add('is-effort');
+
+    clearTimeout(effortTimer);
+    effortTimer = setTimeout(function () {
+        figure.classList.remove('is-effort');
+    }, FIGURE_EFFORT_MS);
 }
 
 /* ── الإضافة ──────────────────────────────────────────────────── */
@@ -694,7 +705,7 @@ moveIndicator(false);
 
 window.addEventListener('resize', function () {
     moveIndicator(false);
-    placeMascot(mascotPercent);
+    placeFigure();
     if (sheetOpen) placeSheet();
 });
 if (document.fonts && document.fonts.ready) {

@@ -90,7 +90,7 @@ async function inspect(page) {
 }
 
 /* يتتبّع التميمة إطارًا بإطار أثناء انتقالها، ويلتقط لقطة في منتصف السحب */
-async function probeMascot(page, docs, path) {
+async function probeFigure(page, docs, path) {
   /* الخلفية المتحرّكة وحدها تُسقط إطارًا أو اثنين في هذه البيئة (رسم برمجيّ
      بلا تسريع)، فالحكم على سلاسة التميمة يكون بمقارنتها بهذا الأساس
      لا بمعيار مطلق يستحيل بلوغه هنا. */
@@ -106,7 +106,7 @@ async function probeMascot(page, docs, path) {
   }));
 
   const start = await page.evaluate(() => {
-    const m = document.getElementById('mascot');
+    const m = document.getElementById('figure');
     const p = document.getElementById('progress').getBoundingClientRect();
     const r = m.getBoundingClientRect();
     return { centre: r.left + r.width / 2, trackLeft: p.left, trackWidth: p.width,
@@ -117,7 +117,7 @@ async function probeMascot(page, docs, path) {
   await page.click('#taskList li:nth-child(2) .check');
 
   const frames = await page.evaluate(() => new Promise((resolve) => {
-    const m = document.getElementById('mascot');
+    const m = document.getElementById('figure');
     const svg = m.querySelector('svg');
     const out = [];
     let n = 0;
@@ -126,9 +126,8 @@ async function probeMascot(page, docs, path) {
       out.push({
         t: Math.round(performance.now()),
         centre: +(r.left + r.width / 2).toFixed(1),
-        pulling: m.classList.contains('is-pulling'),
+        pulling: m.classList.contains('is-effort'),
         anim: getComputedStyle(svg).animationName,
-        rope: +getComputedStyle(m.querySelector('.m-rope')).opacity,
         rotated: getComputedStyle(svg).transform !== 'none'
       });
       if (++n < 45) requestAnimationFrame(tick); else resolve(out);
@@ -141,7 +140,7 @@ async function probeMascot(page, docs, path) {
       .querySelector('.check').click();
   });
   await new Promise((r) => setTimeout(r, 180));
-  await page.screenshot({ path: path.join(docs, 'preview-mascot-pulling.png') });
+  await page.screenshot({ path: path.join(docs, 'preview-figure-pushing.png') });
   await new Promise((r) => setTimeout(r, 900));
 
   /* قياس معزول: تحريك التميمة وحدها، بلا شلّال الإنجاز ولا الشرر،
@@ -154,19 +153,17 @@ async function probeMascot(page, docs, path) {
         if (++n < 45) requestAnimationFrame(tick); else done();
       })(performance.now());
     });
-    setTimeout(() => window.moveMascot(window.mascotPercent > 50 ? 20 : 80), 70);
+    setTimeout(() => window.setProgress(80), 70);
     run().then(() => {
       const t = d.slice(3).sort((a, b) => a - b);
       resolve({ median: +t[Math.floor(t.length / 2)].toFixed(1),
                 dropped: t.filter((x) => x > 34).length });
     });
   }));
-  /* أعاد القياس المعزول التميمة إلى نسبة مصطنعة، فتُستعاد النسبة الحقيقيّة */
-  await page.evaluate(() => window.updateUI());
   await new Promise((r) => setTimeout(r, 1200));
 
   const end = await page.evaluate(() => {
-    const m = document.getElementById('mascot');
+    const m = document.getElementById('figure');
     const r = m.getBoundingClientRect();
     /* رأس الشريط: الحافّة الأمامية للجزء الممتلئ (يمين -> يسار) */
     const track = document.getElementById('progress').getBoundingClientRect();
@@ -174,8 +171,12 @@ async function probeMascot(page, docs, path) {
     return { centre: r.left + r.width / 2,
              handleX: track.right - fill.width,
              idle: getComputedStyle(m.querySelector('svg')).animationName,
-             pulling: m.classList.contains('is-pulling'),
-             rope: +getComputedStyle(m.querySelector('.m-rope')).opacity };
+             pulling: m.classList.contains('is-effort'),
+             gripX: (() => { const g = m.querySelector('.fig-grip').getBoundingClientRect();
+                             return g.left + g.width / 2; })(),
+             fillPct: parseFloat(getComputedStyle(document.getElementById('progress'))
+                       .getPropertyValue('--progress')),
+             renderedPct: +(fill.width / track.width * 100).toFixed(1) };
   });
 
   const moved = Math.abs(end.centre - start.centre);
@@ -196,20 +197,22 @@ async function probeMascot(page, docs, path) {
     baselineDropped: baseline.dropped,
     soloMedianMs: solo.median,
     soloDropped: solo.dropped,
-    startedIdle: start.idle === 'mascot-idle',
+    startedIdle: start.idle === 'figure-idle',
     movedPx: +moved.toFixed(1),
     distinctPositions: distinct,
     pullPoseFrames: pulledFrames,
-    ropeShownWhilePulling: frames.some((f) => f.rope > 0.5),
+
     leanApplied: frames.some((f) => f.pulling && f.rotated),
     maxFrameGapMs: maxGap,
     maxGapAtFrame: maxAt,
     medianGapMs: medianGap,
     steadyMaxGapMs: steadyMax,
     droppedFrames: dropped,
-    settledIdle: end.idle === 'mascot-idle' && !end.pulling,
-    handleOffsetPx: +Math.abs(end.centre - end.handleX).toFixed(1),
-    ropeHiddenAtRest: end.rope < 0.05,
+    settledIdle: end.idle === 'figure-idle' && !end.pulling,
+    gripOffsetPx: +Math.abs(end.gripX - end.handleX).toFixed(1),
+    fillMatchesValue: Math.abs(end.renderedPct - end.fillPct) < 1.5,
+    valueAtRest: end.fillPct,
+
     withinTrack: end.centre >= start.trackLeft - 1 &&
                  end.centre <= start.trackLeft + start.trackWidth + 1
   };
@@ -274,28 +277,29 @@ async function probeInteraction(page) {
     await page.screenshot({ path: path.join(docs, 'preview.png') });
     console.log('\n  → docs/preview.png');
 
-    const mas = await probeMascot(page, docs, path);
-    console.log('\nMascot');
+    const mas = await probeFigure(page, docs, path);
+    console.log('\nStick figure');
     ok('starts in idle stance', mas.startedIdle);
     ok('moves along the track', mas.movedPx > 8, mas.movedPx + 'px across ' + mas.distinctPositions + ' sampled positions');
-    ok('holds pulling pose while moving', mas.pullPoseFrames > 5, mas.pullPoseFrames + ' frames');
+    ok('holds effort pose while moving', mas.pullPoseFrames > 5, mas.pullPoseFrames + ' frames');
     ok('leans into the direction of travel', mas.leanApplied);
-    ok('rope shown while pulling', mas.ropeShownWhilePulling);
-    ok('mascot alone sustains 60fps', mas.soloMedianMs <= 18,
+    ok('bar width derives from the same value', mas.fillMatchesValue,
+       'rendered ' + mas.valueAtRest + '% matches --progress');
+    ok('figure alone sustains 60fps', mas.soloMedianMs <= 18,
        'median ' + mas.soloMedianMs + 'ms vs ' + mas.baselineMedianMs + 'ms at rest');
-    ok('mascot alone adds no jank', mas.soloDropped <= mas.baselineDropped + 3,
+    ok('figure alone adds no jank', mas.soloDropped <= mas.baselineDropped + 3,
        mas.soloDropped + ' dropped vs ' + mas.baselineDropped + ' at rest' +
        ' (counts fluctuate run to run here; the median above is the stable signal)');
     console.log('    note: during a full task completion the median is ' +
        mas.medianGapMs + 'ms (' + mas.droppedFrames + ' dropped) — that window also' +
        ' carries the strikethrough cascade and 16 spark elements, and this' +
        ' headless Chrome renders the blurred aurora in software.');
-    ok('rests on the progress handle', mas.handleOffsetPx <= 16,
-       mas.handleOffsetPx + 'px from the golden head');
+    ok('grip rests on the handle', mas.gripOffsetPx <= 12,
+       mas.gripOffsetPx + 'px from the knob');
     ok('returns to idle when stopped', mas.settledIdle);
-    ok('rope hidden at rest', mas.ropeHiddenAtRest);
+
     ok('stays within the track', mas.withinTrack);
-    console.log('  → docs/preview-mascot-pulling.png');
+    console.log('  → docs/preview-figure-pushing.png');
 
     const i = await probeInteraction(page);
     console.log('\nInteraction');
