@@ -14,10 +14,6 @@
       <stop offset="0%" stop-color="#9c7d23"/>
       <stop offset="100%" stop-color="#e5c158"/>
     </linearGradient>
-    <radialGradient id="dotGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#f6e3a1"/>
-      <stop offset="100%" stop-color="#9c7d23"/>
-    </radialGradient>
     <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="6" result="blur"/>
       <feMerge>
@@ -47,24 +43,6 @@
     .blob2 { fill: #3a2f13; opacity: 0.3; animation: drift2 32s ease-in-out infinite alternate; }
     @keyframes drift1 { 0% { transform: translate(0,0); } 100% { transform: translate(60px,-20px); } }
     @keyframes drift2 { 0% { transform: translate(0,0); } 100% { transform: translate(-55px,18px); } }
-
-    .spark { fill: #fdf6e3; opacity: 0; animation: twinkle 4.5s ease-in-out infinite; }
-    .s1 { animation-delay: 0s; } .s2 { animation-delay: 1.2s; }
-    .s3 { animation-delay: 2.3s; } .s4 { animation-delay: 3.2s; }
-    @keyframes twinkle {
-      0%, 100% { opacity: 0; transform: scale(0.5); }
-      50% { opacity: 0.6; transform: scale(1); }
-    }
-
-    .dot { fill: url(#dotGrad); opacity: 0; animation: floatUp 10s ease-in-out infinite; }
-    .d1 { animation-delay: 0s; } .d2 { animation-delay: 2.5s; }
-    .d3 { animation-delay: 5s; } .d4 { animation-delay: 7.5s; }
-    @keyframes floatUp {
-      0%   { transform: translateY(0px); opacity: 0; }
-      15%  { opacity: 0.5; }
-      85%  { opacity: 0.18; }
-      100% { transform: translateY(-200px); opacity: 0; }
-    }
 
     .badge {
       fill: none;
@@ -102,12 +80,6 @@
       50% { opacity: 0.92; }
     }
 
-    .subtitle {
-      font-family: 'Cairo', 'Segoe UI', Arial, sans-serif;
-      font-size: 21px;
-      fill: #cdd8de;
-    }
-
     .barTrack { fill: #16222c; opacity: 0.8; }
     .barFill {
       fill: url(#barGrad);
@@ -124,26 +96,13 @@
   <circle class="blob blob1" cx="230" cy="80" r="150"/>
   <circle class="blob blob2" cx="970" cy="220" r="150"/>
 
-  <g class="spark">
-    <circle class="s1" cx="95"   cy="60"  r="2"/>
-    <circle class="s2" cx="1110" cy="225" r="1.8"/>
-    <circle class="s3" cx="1145" cy="145" r="2.2"/>
-    <circle class="s4" cx="65"   cy="205" r="1.8"/>
-  </g>
-
-  <circle class="dot d1" cx="150" cy="255" r="7"/>
-  <circle class="dot d2" cx="470" cy="262" r="5.5"/>
-  <circle class="dot d3" cx="800" cy="256" r="6.5"/>
-  <circle class="dot d4" cx="1070" cy="264" r="5"/>
-
   <rect class="badge" x="384" y="90" width="66" height="66" rx="18"/>
   <path class="tick" d="M 400 122 L 414 138 L 438 108"/>
 
   <text x="640" y="150" text-anchor="middle" class="title">قائمة المهام</text>
-  <text x="600" y="195" text-anchor="middle" class="subtitle">Petrol ink, manuscript gold — Arabic RTL, zero dependencies</text>
 
-  <rect class="barTrack" x="350" y="222" width="500" height="6" rx="3"/>
-  <rect class="barFill" x="350" y="222" width="500" height="6" rx="3"/>
+  <rect class="barTrack" x="350" y="190" width="500" height="6" rx="3"/>
+  <rect class="barFill" x="350" y="190" width="500" height="6" rx="3"/>
 
   <rect class="frame" x="6" y="6" width="1188" height="288" rx="18"/>
 </svg>
