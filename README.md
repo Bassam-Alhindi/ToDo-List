@@ -1,4 +1,4 @@
-
+<img src="docs/banner.svg" width="100%"/>
 
 <h1 align="center">قائمة المهام · ToDo-List</h1>
 <p align="center">
@@ -136,23 +136,6 @@ npm run test:prod        # runs checks against the deployed site
 - No console errors, page errors, or failed requests
 
 > If `npm install` skips Puppeteer's browser download, run `npx puppeteer browsers install chrome`.
-
----
-
-## UI Showcase
-
-<p align="center">
-  <img src="docs/preview-desktop.png" alt="Desktop View" width="700">
-</p>
-
-<p align="center">
-  <img src="docs/preview-datepicker.png" alt="Date Picker" width="380">
-</p>
-
-<p align="center">
-  <img src="docs/preview-figure-pushing.png" alt="Progress Figure — Pushing" width="380">
-  <img src="docs/preview-mascot-pulling.png" alt="Progress Figure — Pulling" width="380">
-</p>
 
 ---
 
