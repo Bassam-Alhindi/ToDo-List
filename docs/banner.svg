@@ -63,9 +63,12 @@
       filter: url(#glow);
       stroke-dasharray: 40;
       stroke-dashoffset: 40;
-      animation: draw 0.5s ease-out 0.9s forwards;
+      animation: draw 1.8s ease-in-out infinite alternate;
     }
-    @keyframes draw { to { stroke-dashoffset: 0; } }
+    @keyframes draw {
+      0%   { stroke-dashoffset: 40; opacity: 0.35; }
+      100% { stroke-dashoffset: 0; opacity: 1; }
+    }
 
     .title {
       font-family: 'Cairo', 'Segoe UI', Arial, sans-serif;
@@ -86,9 +89,9 @@
       filter: url(#softGlow);
       transform: scaleX(0);
       transform-origin: 600px 0px;
-      animation: fill 2.2s cubic-bezier(0.22,0.61,0.36,1) 1.1s forwards;
+      animation: fill 2.6s cubic-bezier(0.45,0,0.55,1) infinite alternate;
     }
-    @keyframes fill { to { transform: scaleX(1); } }
+    @keyframes fill { 0% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
   </style>
 
   <rect class="bg" width="1200" height="300"/>
