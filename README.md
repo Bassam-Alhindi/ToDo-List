@@ -1,8 +1,6 @@
-<p align="center">
-  <img src="docs/preview.png" alt="قائمة المهام" width="400">
-</p>
 
-<h1 align="center">قائمة المهام · Qa'imat Al-Mahaam</h1>
+
+<h1 align="center">قائمة المهام · ToDo-List</h1>
 <p align="center">
   <em>Sleek, minimalist, and ultra-responsive Arabic RTL task list —<br>petrol ink, manuscript gold, and light that never stops moving.</em>
 </p>
