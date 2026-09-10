@@ -650,6 +650,7 @@ li {
     -webkit-user-select: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
     transition: background 0.34s var(--silk), opacity 0.34s var(--silk),
                 transform 0.36s var(--silk), height 0.36s var(--silk),
                 padding 0.36s var(--silk);
@@ -701,6 +702,7 @@ li.removing {
     place-items: center;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 .check input {
@@ -807,6 +809,7 @@ li.removing {
     cursor: pointer;
     -webkit-user-select: none;
     user-select: none;
+    touch-action: manipulation;
 }
 
 .task-ink {

@@ -352,6 +352,13 @@ function createTaskElement(text, isDone, dueDate, priority) {
 
     checkbox.addEventListener('click', function (e) { e.stopPropagation(); });
 
+    check.addEventListener('pointerdown', function (e) {
+        if (e.pointerType !== 'touch') return;
+        e.preventDefault();
+        checkbox.checked = !checkbox.checked;
+        checkbox.dispatchEvent(new Event('change'));
+    });
+
     checkbox.addEventListener('change', function () {
         li.classList.toggle('done', checkbox.checked);
         refreshDueState(li);
@@ -393,6 +400,15 @@ function createTaskElement(text, isDone, dueDate, priority) {
         const selection = window.getSelection();
         if (selection && String(selection).length) return;
         checkbox.click();
+    });
+
+    taskSpan.addEventListener('pointerdown', function (e) {
+        if (e.pointerType !== 'touch') return;
+        const selection = window.getSelection();
+        if (selection && String(selection).length) return;
+        e.preventDefault();
+        checkbox.checked = !checkbox.checked;
+        checkbox.dispatchEvent(new Event('change'));
     });
 
     // النصّ والشارة في حاوية واحدة حتى تبقيا متجاورتين وتلتفّا معًا
@@ -571,6 +587,7 @@ taskList.addEventListener('scroll', updateScrollEdge, { passive: true });
 
 /* على الأجهزة اللمسية لا يوجد مرور بالمؤشّر، فلمس السطر هو ما يكشف زرّ الحذف */
 taskList.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('.check') || e.target.closest('.task-text')) return;
     const li = e.target.closest('li');
     for (const row of taskList.children) {
         row.classList.toggle('is-selected', row === li);
