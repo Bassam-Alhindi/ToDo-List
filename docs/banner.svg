@@ -62,12 +62,13 @@
       stroke-linejoin: round;
       filter: url(#glow);
       stroke-dasharray: 40;
-      stroke-dashoffset: 40;
-      animation: draw 1.8s ease-in-out infinite alternate;
+      stroke-dashoffset: 0;
+      transform-origin: 419px 123px;
+      animation: tickPulse 2.4s ease-in-out infinite;
     }
-    @keyframes draw {
-      0%   { stroke-dashoffset: 40; opacity: 0.35; }
-      100% { stroke-dashoffset: 0; opacity: 1; }
+    @keyframes tickPulse {
+      0%, 100% { opacity: 0.85; transform: scale(1); }
+      50%      { opacity: 1;    transform: scale(1.12); }
     }
 
     .title {
