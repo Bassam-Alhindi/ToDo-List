@@ -324,6 +324,10 @@ function burst(anchor) {
 
 /* ── بناء سطر المهمة ──────────────────────────────────────────── */
 
+// معرّف فريد لكلّ مربّع، يربط به نصّ المهمة عبر <label for>
+let taskSeq = 0;
+let sortTimer = null;
+
 function createTaskElement(text, isDone, dueDate, priority) {
     const li = document.createElement('li');
     li.dataset.text = text;
@@ -331,13 +335,15 @@ function createTaskElement(text, isDone, dueDate, priority) {
     li.dataset.created = Date.now();
     if (isDone) li.classList.add('done');
 
-    /* <label> يمرّر اللمسة إلى المربّع تمريرًا أصليًّا في كلّ المتصفّحات،
-       بخلاف توسيع المساحة بعنصر زائف الذي لا يُعوَّل عليه في iOS Safari */
+    /* التبديل أصليّ بالكامل: المربّع يدير حالته بنفسه، والغلاف .check ونصّ
+       المهمة كلاهما <label> له، فتصله النقرة أو اللمسة مرّةً واحدة.
+       لا مستمعات pointer أو touch، ولا .click() برمجيّ. */
     const check = document.createElement('label');
     check.className = 'check';
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
+    checkbox.id = 'task-' + (++taskSeq);
     checkbox.checked = isDone;
     checkbox.setAttribute('aria-label', 'إنجاز مهمة: ' + text);
     check.appendChild(checkbox);
@@ -350,20 +356,13 @@ function createTaskElement(text, isDone, dueDate, priority) {
     tick.appendChild(tickPath);
     check.appendChild(tick);
 
-    checkbox.addEventListener('click', function (e) { e.stopPropagation(); });
-
-    check.addEventListener('pointerdown', function (e) {
-        if (e.pointerType !== 'touch') return;
-        e.preventDefault();
-        checkbox.checked = !checkbox.checked;
-        checkbox.dispatchEvent(new Event('change'));
-    });
-
+    // المستمع الوحيد لتبديل الحالة: حدث change الأصليّ، مرّةً لكلّ نقرة
     checkbox.addEventListener('change', function () {
-        li.classList.toggle('done', checkbox.checked);
+        const done = checkbox.checked;
+        li.classList.toggle('done', done);
         refreshDueState(li);
 
-        if (checkbox.checked) {
+        if (done) {
             check.classList.remove('pulse');
             void check.offsetWidth;
             check.classList.add('pulse');
@@ -377,44 +376,30 @@ function createTaskElement(text, isDone, dueDate, priority) {
             updateUI();
             saveTasks();
         });
-        
-        setTimeout(function () {
-            sortTasks();
-        }, 400);
+
+        // التبديلات المتتالية السريعة تنتهي بفرز واحد
+        clearTimeout(sortTimer);
+        sortTimer = setTimeout(sortTasks, 400);
     });
 
     check.addEventListener('animationend', function (e) {
         if (e.animationName === 'pulse-ring') check.classList.remove('pulse');
     });
 
-    const taskSpan = document.createElement('span');
-    taskSpan.className = 'task-text';
+    // نصّ المهمة ملصق ثانٍ للمربّع نفسه، فالنقر عليه يبدّل الحالة أصليًّا
+    const taskLabel = document.createElement('label');
+    taskLabel.className = 'task-text';
+    taskLabel.htmlFor = checkbox.id;
 
     const ink = document.createElement('span');
     ink.className = 'task-ink';
     ink.textContent = text;
-    taskSpan.appendChild(ink);
-
-    // النقر على نص المهمة يبدّل حالتها، ما لم يكن المستخدم يظلّل النص
-    taskSpan.addEventListener('click', function () {
-        const selection = window.getSelection();
-        if (selection && String(selection).length) return;
-        checkbox.click();
-    });
-
-    taskSpan.addEventListener('pointerdown', function (e) {
-        if (e.pointerType !== 'touch') return;
-        const selection = window.getSelection();
-        if (selection && String(selection).length) return;
-        e.preventDefault();
-        checkbox.checked = !checkbox.checked;
-        checkbox.dispatchEvent(new Event('change'));
-    });
+    taskLabel.appendChild(ink);
 
     // النصّ والشارة في حاوية واحدة حتى تبقيا متجاورتين وتلتفّا معًا
     const main = document.createElement('div');
     main.className = 'task-main';
-    main.appendChild(taskSpan);
+    main.appendChild(taskLabel);
 
     li.appendChild(check);
     li.appendChild(main);
@@ -585,9 +570,10 @@ function updateScrollEdge() {
 
 taskList.addEventListener('scroll', updateScrollEdge, { passive: true });
 
-/* على الأجهزة اللمسية لا يوجد مرور بالمؤشّر، فلمس السطر هو ما يكشف زرّ الحذف */
-taskList.addEventListener('pointerdown', function (e) {
-    if (e.target.closest('.check') || e.target.closest('.task-text')) return;
+/* على الأجهزة اللمسية لا يوجد مرور بالمؤشّر، فلمس السطر هو ما يكشف زرّ الحذف.
+   نقرات الملصقين تُترك لحدث change وحده. */
+taskList.addEventListener('click', function (e) {
+    if (e.target.closest('.check, .task-text')) return;
     const li = e.target.closest('li');
     for (const row of taskList.children) {
         row.classList.toggle('is-selected', row === li);
@@ -630,8 +616,8 @@ function sortTasks() {
         }
 
         // ثانيًا: الأولوية (عالية > متوسطة > منخفضة)
-        const pA = PRIORITY_ORDER[a.dataset.priority] || 1;
-        const pB = PRIORITY_ORDER[b.dataset.priority] || 1;
+        const pA = PRIORITY_ORDER[a.dataset.priority] ?? 1;
+        const pB = PRIORITY_ORDER[b.dataset.priority] ?? 1;
         if (pA !== pB) return pA - pB;
 
         // ثالثًا: تاريخ الإنشاء (الأحدث أولاً)
@@ -640,7 +626,12 @@ function sortTasks() {
         return cB - cA;
     });
 
-    for (const li of items) taskList.appendChild(li);
+    /* لا يُنقل إلّا السطر الذي تغيّر موضعه: نقل عنصر في DOM يقطع حركاته الجارية
+       (شطب النصّ ورسم العلامة)، وقد يُضيّع النقرة إن جرى تحت إصبع المستخدم */
+    items.forEach(function (li, i) {
+        const current = taskList.children[i];
+        if (current !== li) taskList.insertBefore(li, current);
+    });
 }
 
 /* ── الإضافة ──────────────────────────────────────────────────── */

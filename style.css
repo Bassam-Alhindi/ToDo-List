@@ -813,6 +813,7 @@ li.removing {
 }
 
 .task-ink {
+    pointer-events: none;
     overflow-wrap: anywhere;
     color: var(--text);
     background-image: linear-gradient(currentColor, currentColor);

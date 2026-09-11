@@ -53,7 +53,7 @@ A completion sequence that runs as a staggered cascade, not a single snap:
 
 Designed at the phone and scaled up — not shrunk down:
 
-- **Single-Tap Responsiveness** — `pointerdown` event handlers with `preventDefault()` bypass the 300ms mobile click delay entirely
+- **Single-Tap Responsiveness** — Fully native toggling: the checkbox wrapper and the task text are both `<label>`s for the same `<input>`, which has exactly one `change` listener — no custom pointer/touch handlers, no programmatic `.click()`
 - **Touch-Action: Manipulation** — Applied to `li`, `.check`, and `.task-text` to eliminate double-tap-to-zoom interference
 - **44px Touch Targets** — Every control meets the WCAG minimum comfortable touch area
 - **Hover Isolation** — All `:hover` effects live inside `@media (hover: hover) and (pointer: fine)` so touch devices never see stuck hover states
