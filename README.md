@@ -53,8 +53,8 @@ A completion sequence that runs as a staggered cascade, not a single snap:
 
 Designed at the phone and scaled up — not shrunk down:
 
-- **Single-Tap Responsiveness** — Fully native toggling: the checkbox wrapper and the task text are both `<label>`s for the same `<input>`, which has exactly one `change` listener — no custom pointer/touch handlers, no programmatic `.click()`
-- **Touch-Action: Manipulation** — Applied to `li`, `.check`, and `.task-text` to eliminate double-tap-to-zoom interference
+- **Single-Tap Responsiveness** — Fully native toggling: the checkbox wrapper and the rest of the row are both `<label>`s for the same `<input>`, so the very first tap anywhere on a task completes or reopens it. One `change` listener, no row selection step, no custom pointer/touch handlers, no programmatic `.click()`
+- **Touch-Action: Manipulation** — Applied to `li`, `.check`, and `.task-main` to eliminate double-tap-to-zoom interference
 - **44px Touch Targets** — Every control meets the WCAG minimum comfortable touch area
 - **Hover Isolation** — All `:hover` effects live inside `@media (hover: hover) and (pointer: fine)` so touch devices never see stuck hover states
 - **16px Input Font** — Prevents iOS Safari from force-zooming on focus

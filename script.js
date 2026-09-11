@@ -335,9 +335,9 @@ function createTaskElement(text, isDone, dueDate, priority) {
     li.dataset.created = Date.now();
     if (isDone) li.classList.add('done');
 
-    /* التبديل أصليّ بالكامل: المربّع يدير حالته بنفسه، والغلاف .check ونصّ
-       المهمة كلاهما <label> له، فتصله النقرة أو اللمسة مرّةً واحدة.
-       لا مستمعات pointer أو touch، ولا .click() برمجيّ. */
+    /* التبديل أصليّ بالكامل: المربّع يدير حالته بنفسه، والغلاف .check وبقيّة
+       السطر (.task-main) كلاهما <label> له، فتصله أوّل نقرة أو لمسة مرّةً واحدة.
+       لا خطوة تحديد للسطر، ولا مستمعات pointer أو touch، ولا .click() برمجيّ. */
     const check = document.createElement('label');
     check.className = 'check';
 
@@ -386,20 +386,20 @@ function createTaskElement(text, isDone, dueDate, priority) {
         if (e.animationName === 'pulse-ring') check.classList.remove('pulse');
     });
 
-    // نصّ المهمة ملصق ثانٍ للمربّع نفسه، فالنقر عليه يبدّل الحالة أصليًّا
-    const taskLabel = document.createElement('label');
-    taskLabel.className = 'task-text';
-    taskLabel.htmlFor = checkbox.id;
+    const taskText = document.createElement('span');
+    taskText.className = 'task-text';
 
     const ink = document.createElement('span');
     ink.className = 'task-ink';
     ink.textContent = text;
-    taskLabel.appendChild(ink);
+    taskText.appendChild(ink);
 
-    // النصّ والشارة في حاوية واحدة حتى تبقيا متجاورتين وتلتفّا معًا
-    const main = document.createElement('div');
+    /* النصّ والشارتان في ملصق ثانٍ للمربّع نفسه، تمتدّ مساحته عبر ::after على
+       السطر كلّه، فأيّ لمسة على السطر تبدّل الحالة من المرّة الأولى */
+    const main = document.createElement('label');
     main.className = 'task-main';
-    main.appendChild(taskLabel);
+    main.htmlFor = checkbox.id;
+    main.appendChild(taskText);
 
     li.appendChild(check);
     li.appendChild(main);
@@ -569,22 +569,6 @@ function updateScrollEdge() {
 }
 
 taskList.addEventListener('scroll', updateScrollEdge, { passive: true });
-
-/* على الأجهزة اللمسية لا يوجد مرور بالمؤشّر، فلمس السطر هو ما يكشف زرّ الحذف.
-   نقرات الملصقين تُترك لحدث change وحده. */
-taskList.addEventListener('click', function (e) {
-    if (e.target.closest('.check, .task-text')) return;
-    const li = e.target.closest('li');
-    for (const row of taskList.children) {
-        row.classList.toggle('is-selected', row === li);
-    }
-});
-
-// النقر خارج القائمة يُلغي التحديد
-document.addEventListener('pointerdown', function (e) {
-    if (e.target.closest('#taskList')) return;
-    for (const row of taskList.children) row.classList.remove('is-selected');
-});
 
 /* ── التقدّم ────────────────────────────────────────────────────── */
 

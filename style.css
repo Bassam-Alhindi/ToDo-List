@@ -694,6 +694,7 @@ li.removing {
    الهوامش السالبة تُبقي تخطيط السطر كما كان رغم اتّساع المساحة. */
 .check {
     position: relative;
+    z-index: 1;     /* فوق مساحة لمس السطر (.task-main::after) */
     flex: 0 0 auto;
     width: var(--touch);
     height: var(--touch);
@@ -799,17 +800,26 @@ li.removing {
     flex-wrap: wrap;
     align-items: center;
     gap: 0.25rem 0.55rem;
+    cursor: pointer;
     -webkit-user-select: none;
     user-select: none;
+    touch-action: manipulation;
+}
+
+/* .task-main هو <label> المربّع. هذه الطبقة تمدّ مساحة لمسه على السطر كلّه
+   (الحشوة والفراغ والشارات)، فأوّل لمسة في أيّ مكان تبدّل الحالة.
+   مرجعها li لأنّ .task-main بلا position؛ المربّع وزرّ الحذف فوقها بـz-index. */
+.task-main::after {
+    content: "";
+    position: absolute;
+    inset: 0;
 }
 
 .task-text {
     flex: 0 1 auto;
     min-width: 0;
-    cursor: pointer;
     -webkit-user-select: none;
     user-select: none;
-    touch-action: manipulation;
 }
 
 .task-ink {
@@ -885,6 +895,8 @@ li.done .due-badge { opacity: 0.45; }
 /* delete */
 
 .del {
+    position: relative;
+    z-index: 1;     /* فوق مساحة لمس السطر (.task-main::after) */
     flex: 0 0 auto;
     display: grid;
     place-items: center;
@@ -902,12 +914,19 @@ li.done .due-badge { opacity: 0.45; }
                 color 0.24s var(--ease), background 0.24s var(--ease);
 }
 
-/* يظهر عند المرور، أو حين يُحدَّد السطر باللمس، أو عند التنقّل بلوحة المفاتيح */
+/* يظهر عند المرور أو عند التنقّل بلوحة المفاتيح */
 li:hover .del,
-li.is-selected .del,
 li:focus-within .del {
     opacity: 1;
     transform: scale(1);
+}
+
+/* لا مرور على الأجهزة اللمسية، ولمس السطر يبدّل حالته، فيبقى الزرّ ظاهرًا خافتًا */
+@media (hover: none) {
+    .del {
+        opacity: 0.55;
+        transform: scale(1);
+    }
 }
 
 .del svg {
