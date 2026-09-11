@@ -53,9 +53,22 @@ function shiftISO(days) {
     return isoOf(d);
 }
 
+// التسميات النسبية حول اليوم؛ ما عداها يُعرض تاريخًا كاملًا
+const RELATIVE_DAYS = { '-2': 'قبل أمس', '-1': 'أمس', '0': 'اليوم', '1': 'بكرة', '2': 'بعد بكرة' };
+
+// الفرق بالأيام التقويمية بين تاريخ ISO واليوم المحلّي؛ UTC يُحيّد تغيّر التوقيت الصيفي
+function daysFromToday(iso) {
+    const parts = iso.split('-').map(Number);
+    const now = new Date();
+    return Math.round(
+        (Date.UTC(parts[0], parts[1] - 1, parts[2]) -
+         Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000
+    );
+}
+
 function formatDueDate(dueDate) {
-    if (dueDate === todayISO()) return 'اليوم';
-    if (dueDate === shiftISO(1)) return 'غدًا';
+    const relative = RELATIVE_DAYS[daysFromToday(dueDate)];
+    if (relative) return relative;
 
     const parts = dueDate.split('-');
     const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -443,6 +456,54 @@ function refreshDueState(li) {
     else if (due === today) li.classList.add('due-today');
 }
 
+/* ── تغيّر اليوم ─ التسميات النسبية تتبع التاريخ الحيّ ───────────── */
+
+function renderTodayLabel() {
+    todayLabel.textContent = new Intl.DateTimeFormat('ar-u-nu-arab', {
+        weekday: 'long', day: 'numeric', month: 'long'
+    }).format(new Date());
+}
+
+/* "اليوم" و"بكرة" و"أمس" وحالتا التأخّر والاستحقاق تُحسب كلّها من تاريخ اليوم،
+   فتُعاد حين يتغيّر: بمؤقّت عند منتصف الليل، وعند عودة الصفحة إلى الواجهة
+   لأنّ المؤقّتات تتوقّف أثناء نوم الجهاز */
+let currentDay = todayISO();
+let midnightTimer = null;
+
+function scheduleMidnight() {
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    clearTimeout(midnightTimer);
+    // ثانية زائدة حتى لا يُطلَق المؤقّت قبل منتصف الليل بجزء من الثانية
+    midnightTimer = setTimeout(refreshDates, next - now + 1000);
+}
+
+function refreshDates() {
+    scheduleMidnight();
+
+    const today = todayISO();
+    if (today === currentDay) return;
+
+    // التاريخ الافتراضيّ للمهمة الجديدة يتبع اليوم، ما لم يختر المستخدم غيره
+    if (selectedDate === currentDay) selectedDate = today;
+    currentDay = today;
+
+    for (const li of taskList.children) {
+        const badge = li.querySelector('.due-badge');
+        if (badge) badge.textContent = formatDueDate(li.dataset.due);
+        refreshDueState(li);
+    }
+
+    renderTodayLabel();
+    updatePill();
+    renderCal();
+}
+
+document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) refreshDates();
+});
+window.addEventListener('pageshow', refreshDates);
+
 /* ── الحذف ─ انطواء السطر ثم إزالته ───────────────────────────── */
 
 function collapse(li, delay) {
@@ -729,16 +790,14 @@ clearCompletedBtn.addEventListener('click', function () {
 
 /* ── الإقلاع ──────────────────────────────────────────────────── */
 
-todayLabel.textContent = new Intl.DateTimeFormat('ar-u-nu-arab', {
-    weekday: 'long', day: 'numeric', month: 'long'
-}).format(new Date());
-
+renderTodayLabel();
 updatePill();
 updatePriorityPill();
 renderCal();
 loadTasks();
 updateUI();
 moveIndicator(false);
+scheduleMidnight();
 
 window.addEventListener('resize', function () {
     moveIndicator(false);

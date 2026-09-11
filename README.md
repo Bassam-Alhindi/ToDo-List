@@ -40,6 +40,19 @@ Tasks are automatically re-sorted after every state change using a strict three-
 | 2 | **Priority** | High → Medium → Low |
 | 3 | **Creation Time** | Newest first (breaks ties within the same date + priority) |
 
+### Relative Due Dates
+
+Due-date badges read the way people speak, and re-calculate against the live date — at midnight, and whenever the tab returns to the foreground:
+
+| Due | Label |
+|---|---|
+| Day before yesterday | قبل أمس |
+| Yesterday | أمس |
+| Today | اليوم |
+| Tomorrow | بكرة |
+| Day after tomorrow | بعد بكرة |
+| Any other day | Full Arabic date, e.g. ١٥ سبتمبر |
+
 ### Micro-Interactions
 
 A completion sequence that runs as a staggered cascade, not a single snap:
